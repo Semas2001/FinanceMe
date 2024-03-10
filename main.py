@@ -3,6 +3,10 @@ from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.lang import Builder
 from kivymd.app import MDApp
+from kivy.config import Config
+
+#set window size
+Window.size = (450,750)
 
 Window.clearcolor = 32/255, 28/255, 28/255, 1
 
@@ -19,7 +23,7 @@ class AccountPage(Screen):
     pass
 
 
-class WindowManager(ScreenManager):
+class ScreenManager(ScreenManager):
     pass
 
 
