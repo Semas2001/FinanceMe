@@ -61,6 +61,7 @@ ScreenManager:
 <BP>
     name: "BP"
 
+
     MDTopAppBar:
         title: 'Bottom navigation'
         md_bg_color: .2, .2, .2, 1
@@ -88,12 +89,28 @@ ScreenManager:
 
             MDCard:
                 size_hint: None, None
-                size: 400,620
+                size: 450,620
                 pos_hint: {"center_x": 0.5, "center_y": 0.45}
                 elevation: 10
                 padding: 25
                 spacing: 25
                 orientation: 'vertical'
+
+
+                ScrollView:
+                    size_hint_y: None
+                    height: self.parent.height * .9
+                    GridLayout:
+                        id: files_layout
+                        cols: 1
+                        spacing: 1
+                        size_hint_y: None
+                        height: self.minimum_height
+
+            MDRaisedButton:
+                text: 'Add File'
+                pos_hint: {'center_x': 0.5 , "center_y" : 0.1}
+                on_press: app.add_file()
 
         MDBottomNavigationItem:
             name: 'Statistics'
@@ -114,7 +131,7 @@ ScreenManager:
 
             MDCard:
                 size_hint: None, None
-                size: 400,620
+                size: 450,620
                 pos_hint: {"center_x": 0.5, "center_y": 0.45}
                 elevation: 10
                 padding: 25
@@ -140,7 +157,7 @@ ScreenManager:
 
             MDCard:
                 size_hint: None, None
-                size: 400,620
+                size: 450,620
                 pos_hint: {"center_x": 0.5, "center_y": 0.45}
                 elevation: 10
                 padding: 25
