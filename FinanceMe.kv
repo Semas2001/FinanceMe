@@ -58,9 +58,8 @@ ScreenManager:
             height: 20
 
 
-<BP>
+<BP>:
     name: "BP"
-
 
     MDTopAppBar:
         title: 'Bottom navigation'
@@ -93,9 +92,27 @@ ScreenManager:
                 pos_hint: {"center_x": 0.5, "center_y": 0.45}
                 elevation: 10
                 padding: 25
-                spacing: 25
+                spacing: 1
                 orientation: 'vertical'
 
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: 40
+                    padding: 5
+                    spacing: 5
+
+                    Label:
+                        text: 'File No.'
+                        size_hint_x: 0.1
+
+                    Label:
+                        text: 'File Name'
+                        size_hint_x: 0.6
+
+                    Label:
+                        text: 'Date Added'
+                        size_hint_x: 0.4
 
                 ScrollView:
                     size_hint_y: None
@@ -107,10 +124,40 @@ ScreenManager:
                         size_hint_y: None
                         height: self.minimum_height
 
-            MDRaisedButton:
-                text: 'Add File'
-                pos_hint: {'center_x': 0.5 , "center_y" : 0.1}
-                on_press: app.add_file()
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: 1, None
+                height: "40dp"
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_x: None
+                    width: self.minimum_width
+                    padding: "90dp", "90dp", "20dp", "20dp"  # Apply padding only along the x-axis
+
+                    MDRoundFlatButton:
+                        text: "Income"
+                        size_hint: None, None
+                        size: 150, 40
+                        on_release: root.show_popup('Income')
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_x: None
+                    width: self.minimum_width
+                    padding: "85dp", "85dp", "20dp", "20dp"  # Apply padding only along the x-axis
+
+                    MDRoundFlatButton:
+                        text: "Outcome"
+                        size_hint: None, None
+                        size: 150, 40
+                        on_release: root.show_popup('Outcome')
+
+
+
+
+
+
 
         MDBottomNavigationItem:
             name: 'Statistics'
