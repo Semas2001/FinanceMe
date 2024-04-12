@@ -1,13 +1,16 @@
+#: import FadeTransition kivy.uix.screenmanager.FadeTransition
 ScreenManager:
     LoginPage:
     BP:
     StatisticsPage:
     AccountPage:
 
-<LoginPage>
+<LoginPage>:
+    name: 'LP'
+
     MDCard:
         size_hint: None, None
-        size: 400,500
+        size: 400, 500
         pos_hint: {"center_x": 0.5, "center_y": 0.5}
         elevation: 10
         padding: 25
@@ -15,7 +18,6 @@ ScreenManager:
         orientation: 'vertical'
 
         MDLabel:
-            id: FinanceMe_lbl
             text: "FinanceMe"
             font_size: 40
             halign: 'center'
@@ -23,21 +25,18 @@ ScreenManager:
             height: self.texture_size[1]
             padding_y: 15
             theme_text_color: "Custom"
-            text_color: 20/256,101/256,175/256, 1
+            text_color: 20/256, 101/256, 175/256, 1
 
         MDTextField:
-            id: user
-            hint_text: "username"
+            hint_text: "Username"
             icon_right: "account"
             size_hint_x: None
             width: 200
             font_size: 18
             pos_hint: {"center_x": 0.5}
 
-
         MDTextField:
-            id: password
-            hint_text: "password"
+            hint_text: "Password"
             icon_right: "eye-off"
             size_hint_x: None
             width: 200
@@ -51,162 +50,281 @@ ScreenManager:
             pos_hint: {"center_x": 0.5}
             on_press:
                 app.root.current = "BP"
-                root.manager.transition.direction = "up"
-
-        Widget:
-            size_hint_y: None
-            height: 20
-
+                root.transition = FadeTransition()
 
 <BP>:
-    name: "BP"
+    name: 'BP'
 
-    MDTopAppBar:
-        title: 'Bottom navigation'
-        md_bg_color: .2, .2, .2, 1
-        specific_text_color: 1, 1, 1, 1
-
-    MDBottomNavigation:
-        panel_color: .2, .2, .2, 1
-
-        MDBottomNavigationItem:
-            name: 'Bookkeeping'
-            text: 'Bookkeeping'
-            icon: 'book-multiple'
-
-            MDLabel:
-                id: FinanceMe_lbl
-                text: "FinanceMe"
-                pos_hint: {"center_y":.95}
-                font_size: 30
-                halign: 'center'
-                size_hint_y: None
-                height: self.texture_size[1]
-                padding_y: 15
-                theme_text_color: "Custom"
-                text_color: 20/256,101/256,175/256, 1
-
-            MDCard:
-                size_hint: None, None
-                size: 450,620
-                pos_hint: {"center_x": 0.5, "center_y": 0.45}
-                elevation: 10
-                padding: 25
-                spacing: 1
-                orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
 
 
-                BoxLayout:
-                    size_hint_y: None
-                    height: 40
-                    padding: 5
-                    spacing: 5
+        MDLabel:
+            text: "FinanceMe"
+            pos_hint: {"center_y": 0.97}
+            font_size: 30
+            halign: 'center'
+            size_hint_y: None
+            height: self.texture_size[1]
+            padding_y: 15
+            theme_text_color: "Custom"
+            text_color: 20/256, 101/256, 175/256, 1
 
-                    Label:
-                        text: 'File No.'
-                        size_hint_x: 0.1
-
-                    Label:
-                        text: 'File Name'
-                        size_hint_x: 0.6
-
-                    Label:
-                        text: 'Date Added'
-                        size_hint_x: 0.4
-
-                ScrollView:
-                    size_hint_y: None
-                    height: self.parent.height * .9
-                    GridLayout:
-                        id: files_layout
-                        cols: 1
-                        spacing: 1
-                        size_hint_y: None
-                        height: self.minimum_height
+        MDCard:
+            size_hint: None, None
+            size: 450, 650
+            pos_hint: {"center_x": 0.5, "center_y": 0.45}
+            elevation: 10
+            padding: 55
+            spacing: 1
+            orientation: 'vertical'
+            clip: True
 
             BoxLayout:
+                size_hint_y: None
+                height: 40
                 orientation: 'horizontal'
-                size_hint: 1, None
-                height: "40dp"
 
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint_x: None
-                    width: self.minimum_width
-                    padding: "90dp", "90dp", "20dp", "20dp"  # Apply padding only along the x-axis
+                Label:
+                    text: 'File No.'
+                    size_hint_x: 0.1
 
-                    MDRoundFlatButton:
-                        text: "Income"
-                        size_hint: None, None
-                        size: 150, 40
-                        on_release: root.show_popup('Income')
+                Label:
+                    text: 'File Name'
+                    size_hint_x: 0.6
 
-                BoxLayout:
-                    orientation: 'horizontal'
-                    size_hint_x: None
-                    width: self.minimum_width
-                    padding: "85dp", "85dp", "20dp", "20dp"  # Apply padding only along the x-axis
+                Label:
+                    text: 'Date Added'
+                    size_hint_x: 0.3
+                    padding_x: 10
 
-                    MDRoundFlatButton:
-                        text: "Outcome"
-                        size_hint: None, None
-                        size: 150, 40
-                        on_release: root.show_popup('Outcome')
-
-
-
-
-
-
-
-        MDBottomNavigationItem:
-            name: 'Statistics'
-            text: 'Statistics'
-            icon: 'chart-line'
-
-            MDLabel:
-                id: FinanceMe_lbl
-                text: "FinanceMe"
-                pos_hint: {"center_y":.95}
-                font_size: 30
-                halign: 'center'
+            ScrollView:
                 size_hint_y: None
-                height: self.texture_size[1]
-                padding_y: 15
-                theme_text_color: "Custom"
-                text_color: 20/256,101/256,175/256, 1
-
+                height: self.parent.height * .7
+                GridLayout:
+                    id: files_layout
+                    cols: 1
+                    spacing: 1
+                    size_hint_y: None
+                    height: self.minimum_height
             MDCard:
                 size_hint: None, None
-                size: 450,620
-                pos_hint: {"center_x": 0.5, "center_y": 0.45}
+                size: 350,80
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
                 elevation: 10
-                padding: 25
-                spacing: 25
-                orientation: 'vertical'
+                padding: 35
+                spacing: 1
+                orientation: 'horizontal'
 
-        MDBottomNavigationItem:
-            name: 'Account'
-            text: 'Account'
-            icon: 'account-settings'
 
-            MDLabel:
-                id: FinanceMe_lbl
-                text: "FinanceMe"
-                pos_hint: {"center_y":.95}
-                font_size: 30
-                halign: 'center'
-                size_hint_y: None
-                height: self.texture_size[1]
-                padding_y: 15
-                theme_text_color: "Custom"
-                text_color: 20/256,101/256,175/256, 1
+                MDRoundFlatButton:
+                    text: "Income"
+                    pos_hint: {"center_y": 0.35}
+                    size_hint: None, None
+                    size: 150, 40
+                    on_release: root.show_popup('Income')
 
-            MDCard:
-                size_hint: None, None
-                size: 450,620
-                pos_hint: {"center_x": 0.5, "center_y": 0.45}
-                elevation: 10
-                padding: 25
-                spacing: 25
-                orientation: 'vertical'
+                Widget:
+                    size_hint_x: None
+                    width: "120dp"
+
+                MDRoundFlatButton:
+                    text: "Outcome"
+                    pos_hint: {"center_y": 0.35}
+                    size_hint: None, None
+                    size: 150, 40
+                    on_release: root.show_popup('Outcome')
+
+
+        MDBottomNavigation:
+            panel_color: .2, .2, .2, 1
+            selected_color_background: .2, .2, .2, 1
+            text_color_active: 144/255, 144/255, 144/255, 1
+
+
+            MDBottomNavigationItem:
+                text: 'Bookkeeping'
+                icon: 'book-multiple'
+                on_tab_press: app.root.current = 'BP'
+                selected_color_background: .2, .2, .2, 1
+
+            MDBottomNavigationItem:
+                text: 'Statistics'
+                icon: 'chart-line'
+                on_tab_press: app.root.current = 'SP'
+
+            MDBottomNavigationItem:
+                text: 'Account'
+                icon: 'account-settings'
+                on_tab_press: app.root.current = 'AP'
+
+<StatisticsPage>:
+    name: 'SP'
+    BoxLayout:
+        id: graph_layout
+        orientation: 'vertical'
+
+        MDLabel:
+            text: "FinanceMe"
+            pos_hint: {"center_y": 0.95}
+            font_size: 30
+            halign: 'center'
+            size_hint_y: None
+            height: self.texture_size[1]
+            padding_y: 15
+            theme_text_color: "Custom"
+            text_color: 20/256, 101/256, 175/256, 1
+
+        MDCard:
+            size_hint: None, None
+            size: 450, 620
+            pos_hint: {"center_x": 0.5, "center_y": 0.45}
+            elevation: 10
+            padding: 25
+            spacing: 25
+            orientation: 'vertical'
+
+        MDBottomNavigation:
+            panel_color: .2, .2, .2, 1
+            selected_color_background: .2, .2, .2, 1
+            text_color_active: 144/255, 144/255, 144/255, 1
+
+            MDBottomNavigationItem:
+                text: 'Bookkeeping'
+                icon: 'book-multiple'
+                on_tab_press: app.root.current = 'BP'
+
+            MDBottomNavigationItem:
+                text: 'Statistics'
+                icon: 'chart-line'
+                on_tab_press: app.root.current = 'SP'
+                selected_color_background: .2, .2, .2, 1
+
+            MDBottomNavigationItem:
+                text: 'Account'
+                icon: 'account-settings'
+                on_tab_press: app.root.current = 'AP'
+
+<AccountPage>:
+    name: 'AP'
+    BoxLayout:
+        orientation: 'vertical'
+        MDLabel:
+            text: "FinanceMe"
+            pos_hint: {"center_y": 0.95}
+            font_size: 30
+            halign: 'center'
+            size_hint_y: None
+            height: self.texture_size[1]
+            padding_y: 15
+            theme_text_color: "Custom"
+            text_color: 20/256, 101/256, 175/256, 1
+
+        MDCard:
+            id:card
+            size_hint: None, None
+            size: 450, 620
+            elevation: 10
+            orientation: 'vertical'
+
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'top'
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 5
+                    size_hint_y: None
+                    size_hint_x: None
+                    height: self.minimum_height
+
+                    MDFlatButton:
+                        id: settings_button
+                        text: "Settings"
+                        theme_text_color: "Custom"
+                        text_color: "gray"
+                        font_size: "24sp"
+                        on_release: root.go_to_settings()
+
+                    Widget:
+                        size_hint_y: None
+                        height: dp(1)
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, 1  # White color
+                            Rectangle:
+                                pos: card.x, settings_button.y - 1
+                                size: card.width, 1
+
+                    MDFlatButton:
+                        id: profile_button
+                        text: "Profile"
+                        theme_text_color: "Custom"
+                        text_color: "gray"
+                        font_size: "24sp"
+                        on_release: root.go_to_profile()
+
+                    Widget:
+                        size_hint_y: None
+                        height: dp(1)
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, 1  # White color
+                            Rectangle:
+                                pos: card.x, profile_button.y - 1
+                                size: card.width, 1
+
+                    MDFlatButton:
+                        id: customization_button
+                        text: "Customization"
+                        theme_text_color: "Custom"
+                        text_color: "gray"
+                        font_size: "24sp"
+                        on_release: root.go_to_customization()
+
+                    Widget:
+                        size_hint_y: None
+                        height: dp(1)
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, 1  # White color
+                            Rectangle:
+                                pos: card.x, customization_button.y - 1
+                                size: card.width, 1
+
+                    MDFlatButton:
+                        id: about_button
+                        text: "About"
+                        theme_text_color: "Custom"
+                        text_color: "gray"
+                        font_size: "24sp"
+                        on_release: root.go_to_about()
+
+                    Widget:
+                        size_hint_y: None
+                        height: dp(1)
+                        canvas:
+                            Color:
+                                rgba: 1, 1, 1, 1  # White color
+                            Rectangle:
+                                pos: card.x+1, about_button.y - 1
+                                size: card.width-2, 1
+
+        MDBottomNavigation:
+            panel_color: .2, .2, .2, 1
+            selected_color_background: .2, .2, .2, 1
+            text_color_active: 144/255, 144/255, 144/255, 1
+
+            MDBottomNavigationItem:
+                text: 'Bookkeeping'
+                icon: 'book-multiple'
+                on_tab_press: app.root.current = 'BP'
+
+            MDBottomNavigationItem:
+                text: 'Statistics'
+                icon: 'chart-line'
+                on_tab_press: app.root.current = 'SP'
+
+            MDBottomNavigationItem:
+                text: 'Account'
+                icon: 'account-settings'
+                on_tab_press: app.root.current = 'AP'

@@ -1,20 +1,20 @@
-from kivy.utils import get_color_from_hex
+from kivy.uix.widget import Widget
+from kivy.graphics import Line, Color
 from kivy.core.window import Window
-from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivymd.uix.filemanager import MDFileManager
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from datetime import datetime
-import os
+import matplotlib.pyplot as plt
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 
-#set window size
-Window.size = (450,750)
-
+# Set window size
+Window.size = (450, 750)
 Window.clearcolor = 32/255, 28/255, 28/255, 1
 
 class LoginPage(Screen):
@@ -24,12 +24,15 @@ class BP(Screen):
     def __init__(self, **kwargs):
         super(BP, self).__init__(**kwargs)
         self.file_entries = []
+        self.income_data = []
+        self.outcome_data = []
 
     file_count = 0
     category = None
     file_path = None
     total_income = 0
     total_outcome = 0
+
     def on_enter(self):
         self.files_layout = self.ids['files_layout']
         self.file_manager = MDFileManager(exit_manager=self.exit_manager, select_path=self.select_path)
@@ -42,28 +45,30 @@ class BP(Screen):
         self.file_path = path
         self.file_manager.close()
         if self.category:
-            self.popup_amount()
+            self.popup_file_and_amount()
 
-    def popup_amount(self):
+    def popup_file_and_amount(self):
         popup_content = BoxLayout(orientation='vertical', padding=10)
+        file_name_input = TextInput(hint_text="Enter file name", multiline=False)
         amount_input = TextInput(hint_text="Enter amount", multiline=False)
         confirm_button = Button(text="Confirm", size_hint_y=None, height=40)
 
         def add_file_and_amount(instance):
-            self.add_file(self.file_path)
+            self.add_file(self.file_path, file_name_input.text)
             self.add_amount(self.category, amount_input.text)
             popup.dismiss()
 
         confirm_button.bind(on_press=add_file_and_amount)
 
+        popup_content.add_widget(file_name_input)
         popup_content.add_widget(amount_input)
         popup_content.add_widget(confirm_button)
 
-        popup = Popup(title=f"Enter {self.category} Amount", content=popup_content, size_hint=(None, None),
-                      size=(300, 200))
+        popup = Popup(title=f"Enter {self.category} File and Amount", content=popup_content, size_hint=(None, None),
+                      size=(300, 250))
         popup.open()
 
-    def add_file(self, file_path):
+    def add_file(self, file_path, file_name):
         if hasattr(self, 'files_layout'):
             # Increment file count
             self.file_count += 1
@@ -71,8 +76,6 @@ class BP(Screen):
             # Get current date and time
             now = datetime.now()
             formatted_date = now.strftime("%Y-%m-%d")
-
-            file_name = os.path.basename(file_path)
 
             # Create a horizontal layout for the new file entry
             new_item = BoxLayout(size_hint_y=None, height=40, padding=5, spacing=5)
@@ -102,11 +105,13 @@ class BP(Screen):
             file_entry = self.file_entries[last_file_index]
 
             # Create a label for the amount
-            amount_label = Label(text=f"{category}: {amount}", size_hint_x=0.3, halign="right")
+            amount_label = Label(text=f"   £{amount}", size_hint_x=0.3, halign="right")
             if category == 'Income':
                 amount_label.color = (0, 1, 0, 1)  # Green color for income
+                self.income_data.append(float(amount))
             elif category == 'Outcome':
                 amount_label.color = (1, 0, 0, 1)  # Red color for outcome
+                self.outcome_data.append(float(amount))
 
             # Add the amount label to the file entry layout
             file_entry.add_widget(amount_label)
@@ -115,17 +120,14 @@ class BP(Screen):
 
     def exit_manager(self, *args):
         self.file_manager.close()
-
 class StatisticsPage(Screen):
     pass
 
 class AccountPage(Screen):
     pass
 
-
 class ScreenManager(ScreenManager):
     pass
-
 
 class FinanceMe(MDApp):
     def build(self):
@@ -136,6 +138,12 @@ class FinanceMe(MDApp):
         )
         return Builder.load_file("FinanceMe.kv")
 
+        screen_manager = ScreenManager()
+        screen_manager.add_widget(LoginPage(name='LP'))
+        screen_manager.add_widget(BP(name='BP'))
+        screen_manager.add_widget(StatisticsPage(name='SP'))  # Add StatisticsPage here
+        screen_manager.add_widget(AccountPage(name='AP'))
+        return screen_manager
     def add_file(self, *args):
         self.file_manager.show('/')  # Start with the root directory
 
