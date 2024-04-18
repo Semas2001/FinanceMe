@@ -1,5 +1,3 @@
-from kivy.uix.widget import Widget
-from kivy.graphics import Line, Color
 from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 from kivy.lang import Builder
@@ -8,10 +6,13 @@ from kivymd.uix.filemanager import MDFileManager
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from datetime import datetime
-import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
+from kivy_garden.graph import Graph, MeshLinePlot
+
 
 # Set window size
 Window.size = (450, 750)
@@ -26,12 +27,12 @@ class BP(Screen):
         self.file_entries = []
         self.income_data = []
         self.outcome_data = []
+        self.total_income = 0
+        self.total_outcome = 0
 
     file_count = 0
     category = None
     file_path = None
-    total_income = 0
-    total_outcome = 0
 
     def on_enter(self):
         self.files_layout = self.ids['files_layout']
@@ -39,7 +40,7 @@ class BP(Screen):
 
     def show_popup(self, category):
         self.category = category
-        self.file_manager.show('/')  # Start with the root directory
+        self.file_manager.show('/')
 
     def select_path(self, path):
         self.file_path = path
@@ -72,84 +73,99 @@ class BP(Screen):
         if hasattr(self, 'files_layout'):
             # Increment file count
             self.file_count += 1
-
-            # Get current date and time
             now = datetime.now()
-            formatted_date = now.strftime("%Y-%m-%d")
-
-            # Create a horizontal layout for the new file entry
+            formatted_datetime = now.strftime("%Y-%m-%d")
             new_item = BoxLayout(size_hint_y=None, height=40, padding=5, spacing=5)
-
-            # Create labels for file number, name, and date
             file_number_label = Label(text=str(self.file_count), size_hint_x=0.1)
             file_name_label = Label(text=file_name, size_hint_x=None, width=200, halign="left", text_size=(None, None))
-            date_label = Label(text=formatted_date, size_hint_x=0.3, halign="right")
-
-            # Add labels to the horizontal layout
+            date_label = Label(text=formatted_datetime, size_hint_x=0.3, halign="right")
             new_item.add_widget(file_number_label)
             new_item.add_widget(file_name_label)
             new_item.add_widget(date_label)
-
-            # Add the new file entry to the layout
             self.files_layout.add_widget(new_item)
-
-            # Save the file entry for reference when adding amount
             self.file_entries.append(new_item)
         else:
             print("Error: files_layout id is not found")
 
     def add_amount(self, category, amount):
         if hasattr(self, 'file_entries'):
-            # Find the index of the last added file entry
             last_file_index = len(self.file_entries) - 1
             file_entry = self.file_entries[last_file_index]
-
-            # Create a label for the amount
             amount_label = Label(text=f"   £{amount}", size_hint_x=0.3, halign="right")
             if category == 'Income':
-                amount_label.color = (0, 1, 0, 1)  # Green color for income
+                amount_label.color = (0, 1, 0, 1)
                 self.income_data.append(float(amount))
+                self.total_income += float(amount)
             elif category == 'Outcome':
-                amount_label.color = (1, 0, 0, 1)  # Red color for outcome
+                amount_label.color = (1, 0, 0, 1)
                 self.outcome_data.append(float(amount))
-
-            # Add the amount label to the file entry layout
+                self.total_outcome += float(amount)
+            now = datetime.now()
             file_entry.add_widget(amount_label)
+            total_revenue = self.total_income - self.total_outcome
+            print(f"Total Revenue: £{total_revenue}")
+            self.manager.get_screen('SP').update_total_revenue(total_revenue)
+            now = datetime.now()
+            formatted_datetime = now.strftime("%Y-%m-%d")
+            self.manager.get_screen('SP').update_graph(total_revenue, formatted_datetime)
         else:
             print("Error: file_entries not initialized")
 
     def exit_manager(self, *args):
         self.file_manager.close()
 class StatisticsPage(Screen):
-    pass
+    def __init__(self, **kwargs):
+        super(StatisticsPage, self).__init__(**kwargs)
+        self.graph = None
+        self.total_revenue_label = Label()
+        graph_size = (400, 600)
+        self.graph = Graph(xlabel='Time', ylabel='Total Revenue', x_ticks_minor=5,
+                           x_ticks_major=25, y_ticks_major=1,
+                           y_grid_label=True, x_grid_label=True, padding=5,
+                           x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=0, ymax=10)
+        self.graph.size_hint = (None, None)
+        self.graph.size = graph_size
+        self.plot = MeshLinePlot(color=[1, 0, 0, 1])
+        self.graph.add_plot(self.plot)
+        self.add_widget(self.graph)
+
+        self.total_revenue_label.text = "Total Revenue: £0"
+
+    def on_enter(self):
+        self.draw_graph()
+
+    def update_total_revenue(self, total_revenue):
+        self.total_revenue_label.text = f"Total Revenue: £{total_revenue}"
+        self.graph.ymax = total_revenue + 100
+
+    def update_graph(self, total_revenue, formatted_datetime):
+        if self.graph:
+            hour = int(formatted_datetime.split("-")[0])
+            self.plot.points.append((hour, total_revenue))
+            self.graph.ymax = total_revenue + 100
 
 class AccountPage(Screen):
     pass
 
 class ScreenManager(ScreenManager):
-    pass
+    def update_statistics_page(self, total_revenue):
+        statistics_page = self.get_screen('SP')
+        statistics_page.update_total_revenue(total_revenue)
 
 class FinanceMe(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
-        self.file_manager = MDFileManager(
-            exit_manager=self.exit_manager,
-            select_path=self.select_path,
-        )
         return Builder.load_file("FinanceMe.kv")
-
         screen_manager = ScreenManager()
         screen_manager.add_widget(LoginPage(name='LP'))
         screen_manager.add_widget(BP(name='BP'))
-        screen_manager.add_widget(StatisticsPage(name='SP'))  # Add StatisticsPage here
+        screen_manager.add_widget(StatisticsPage(name='SP'))
         screen_manager.add_widget(AccountPage(name='AP'))
         return screen_manager
     def add_file(self, *args):
-        self.file_manager.show('/')  # Start with the root directory
-
+        self.file_manager.show('/')
     def exit_manager(self, *args):
         self.file_manager.close()
-
     def select_path(self, path):
         print("Selected:", path)
         self.root.get_screen('BP').add_file(path)
