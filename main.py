@@ -14,6 +14,7 @@ from kivy.uix.textinput import TextInput
 from kivy_garden.graph import Graph, MeshLinePlot
 
 
+
 # Set window size
 Window.size = (450, 750)
 Window.clearcolor = 32/255, 28/255, 28/255, 1
@@ -113,36 +114,46 @@ class BP(Screen):
 
     def exit_manager(self, *args):
         self.file_manager.close()
+
 class StatisticsPage(Screen):
     def __init__(self, **kwargs):
         super(StatisticsPage, self).__init__(**kwargs)
-        self.graph = None
-        self.total_revenue_label = Label()
-        graph_size = (400, 600)
-        self.graph = Graph(xlabel='Time', ylabel='Total Revenue', x_ticks_minor=5,
-                           x_ticks_major=25, y_ticks_major=1,
-                           y_grid_label=True, x_grid_label=True, padding=5,
-                           x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=0, ymax=10)
-        self.graph.size_hint = (None, None)
-        self.graph.size = graph_size
-        self.plot = MeshLinePlot(color=[1, 0, 0, 1])
-        self.graph.add_plot(self.plot)
-        self.add_widget(self.graph)
-
-        self.total_revenue_label.text = "Total Revenue: £0"
+        self.graph = None  # Initialize graph as None
 
     def on_enter(self):
-        self.draw_graph()
+        # Access ids dictionary after the widget tree is initialized
+        if self.ids.graph:
+            self.graph = self.ids.graph  # Assign graph to ids.graph
+            if not self.graph.plots:  # If no plots are already added to the graph
+                self.initialize_graph()  # Call method to initialize graph
 
-    def update_total_revenue(self, total_revenue):
-        self.total_revenue_label.text = f"Total Revenue: £{total_revenue}"
-        self.graph.ymax = total_revenue + 100
+    def initialize_graph(self):
+        # Initialize the graph and other widgets
+        if self.graph:
+            self.plot = MeshLinePlot(color=[1, 0, 0, 1])
+            self.graph.add_plot(self.plot)
+            self.total_revenue_label = Label(halign='center', valign='middle', font_size=24)
+            self.add_widget(self.total_revenue_label)
 
     def update_graph(self, total_revenue, formatted_datetime):
-        if self.graph:
-            hour = int(formatted_datetime.split("-")[0])
-            self.plot.points.append((hour, total_revenue))
-            self.graph.ymax = total_revenue + 100
+        if self.plot:
+            # Update the graph
+            formatted_date = datetime.strptime(formatted_datetime, "%Y-%m-%d").toordinal()
+            self.plot.points.append((formatted_date, total_revenue))
+            self.plot.points.sort(key=lambda x: x[0])
+            self.graph.x_ticks_major = len(self.plot.points)
+            self.graph.x_ticks = [x[0] for x in self.plot.points]
+            self.total_revenue_label.text = f"Total Revenue: £{total_revenue}"
+
+
+
+
+    def update_total_revenue(self, total_revenue):
+        if self.total_revenue_label:
+            # Update the total revenue label
+            self.total_revenue_label.text = f"Total Revenue: £{total_revenue}"
+            if self.graph:
+                self.graph.ymax = total_revenue + 100
 
 class AccountPage(Screen):
     pass
@@ -155,7 +166,7 @@ class ScreenManager(ScreenManager):
 class FinanceMe(MDApp):
     def build(self):
         self.theme_cls.theme_style = "Dark"
-        return Builder.load_file("FinanceMe.kv")
+        Builder.load_file("FinanceMe.kv")
         screen_manager = ScreenManager()
         screen_manager.add_widget(LoginPage(name='LP'))
         screen_manager.add_widget(BP(name='BP'))

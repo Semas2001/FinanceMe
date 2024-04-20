@@ -161,7 +161,6 @@ ScreenManager:
 <StatisticsPage>:
     name: 'SP'
     BoxLayout:
-        id: graph_layout
         orientation: 'vertical'
 
         MDLabel:
@@ -183,6 +182,17 @@ ScreenManager:
             padding: 25
             spacing: 25
             orientation: 'vertical'
+
+            Graph:
+                id: graph
+                orientation: 'vertical'
+
+
+                Label:
+                    id: total_revenue_label
+                    halign: 'center'
+                    valign: 'middle'
+                    font_size: 24
 
 
         MDBottomNavigation:
