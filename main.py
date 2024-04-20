@@ -2,7 +2,7 @@ from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from kivymd.uix.filemanager import MDFileManager
+from kivy.properties import NumericProperty
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from datetime import datetime
@@ -12,9 +12,11 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy_garden.graph import Graph, MeshLinePlot
+from kivy.properties import ListProperty
 
 
-
+total_revenue = []
+file_dates = []
 # Set window size
 Window.size = (450, 750)
 Window.clearcolor = 32/255, 28/255, 28/255, 1
@@ -37,10 +39,14 @@ class BP(Screen):
 
     def on_enter(self):
         self.files_layout = self.ids['files_layout']
-        self.file_manager = MDFileManager(exit_manager=self.exit_manager, select_path=self.select_path)
 
     def show_popup(self, category):
         self.category = category
+        self.popup_file_manager()
+
+    def popup_file_manager(self):
+        from kivymd.uix.filemanager import MDFileManager
+        self.file_manager = MDFileManager(exit_manager=self.exit_manager, select_path=self.select_path)
         self.file_manager.show('/')
 
     def select_path(self, path):
@@ -54,18 +60,14 @@ class BP(Screen):
         file_name_input = TextInput(hint_text="Enter file name", multiline=False)
         amount_input = TextInput(hint_text="Enter amount", multiline=False)
         confirm_button = Button(text="Confirm", size_hint_y=None, height=40)
-
         def add_file_and_amount(instance):
             self.add_file(self.file_path, file_name_input.text)
             self.add_amount(self.category, amount_input.text)
             popup.dismiss()
-
         confirm_button.bind(on_press=add_file_and_amount)
-
         popup_content.add_widget(file_name_input)
         popup_content.add_widget(amount_input)
         popup_content.add_widget(confirm_button)
-
         popup = Popup(title=f"Enter {self.category} File and Amount", content=popup_content, size_hint=(None, None),
                       size=(300, 250))
         popup.open()
@@ -76,6 +78,7 @@ class BP(Screen):
             self.file_count += 1
             now = datetime.now()
             formatted_datetime = now.strftime("%Y-%m-%d")
+            file_dates.append(formatted_datetime)  # Store file addition date
             new_item = BoxLayout(size_hint_y=None, height=40, padding=5, spacing=5)
             file_number_label = Label(text=str(self.file_count), size_hint_x=0.1)
             file_name_label = Label(text=file_name, size_hint_x=None, width=200, halign="left", text_size=(None, None))
@@ -101,14 +104,10 @@ class BP(Screen):
                 amount_label.color = (1, 0, 0, 1)
                 self.outcome_data.append(float(amount))
                 self.total_outcome += float(amount)
-            now = datetime.now()
+            phtotal_revenue = self.total_income - self.total_outcome
+            total_revenue.append(phtotal_revenue)
+            print(f"Total Revenue: £{phtotal_revenue}")
             file_entry.add_widget(amount_label)
-            total_revenue = self.total_income - self.total_outcome
-            print(f"Total Revenue: £{total_revenue}")
-            self.manager.get_screen('SP').update_total_revenue(total_revenue)
-            now = datetime.now()
-            formatted_datetime = now.strftime("%Y-%m-%d")
-            self.manager.get_screen('SP').update_graph(total_revenue, formatted_datetime)
         else:
             print("Error: file_entries not initialized")
 
@@ -118,50 +117,52 @@ class BP(Screen):
 class StatisticsPage(Screen):
     def __init__(self, **kwargs):
         super(StatisticsPage, self).__init__(**kwargs)
-        self.graph = None  # Initialize graph as None
+        self.total_revenue = total_revenue
 
     def on_enter(self):
-        # Access ids dictionary after the widget tree is initialized
-        if self.ids.graph:
-            self.graph = self.ids.graph  # Assign graph to ids.graph
-            if not self.graph.plots:  # If no plots are already added to the graph
-                self.initialize_graph()  # Call method to initialize graph
+        self.update_graph()
 
-    def initialize_graph(self):
-        # Initialize the graph and other widgets
-        if self.graph:
-            self.plot = MeshLinePlot(color=[1, 0, 0, 1])
-            self.graph.add_plot(self.plot)
-            self.total_revenue_label = Label(halign='center', valign='middle', font_size=24)
-            self.add_widget(self.total_revenue_label)
+    def update_graph(self):
+        if not self.total_revenue or not file_dates:
+            return
 
-    def update_graph(self, total_revenue, formatted_datetime):
-        if self.plot:
-            # Update the graph
-            formatted_date = datetime.strptime(formatted_datetime, "%Y-%m-%d").toordinal()
-            self.plot.points.append((formatted_date, total_revenue))
-            self.plot.points.sort(key=lambda x: x[0])
-            self.graph.x_ticks_major = len(self.plot.points)
-            self.graph.x_ticks = [x[0] for x in self.plot.points]
-            self.total_revenue_label.text = f"Total Revenue: £{total_revenue}"
+        graph = self.ids.graph
+        graph.clear_widgets()
 
+        ymax = max(self.total_revenue) + 100
+        graph_obj = Graph(xlabel='Date', ylabel='Total Revenue', x_ticks_minor=5,
+                          x_ticks_major=1, y_ticks_major=int(ymax / 10), y_grid_label=True,
+                          x_grid_label=True, padding=5, x_grid=True, y_grid=True,
+                          xmin=0, xmax=len(file_dates), ymin=0, ymax=ymax)
 
+        dates = [datetime.strptime(date, "%Y-%m-%d") for date in file_dates]
+        x_labels = {i: date.strftime("%Y-%m-%d") for i, date in enumerate(dates)}
+        graph.x_ticks_major = 1  # Set major ticks to 1 to show all dates
+        graph.x_labels = x_labels
 
+        # Iterate through total revenue data and create separate plots for each segment
+        for i in range(1, len(self.total_revenue)):
+            plot = MeshLinePlot()
+            plot.points = [(i - 1, self.total_revenue[i - 1]), (i, self.total_revenue[i])]
 
-    def update_total_revenue(self, total_revenue):
-        if self.total_revenue_label:
-            # Update the total revenue label
-            self.total_revenue_label.text = f"Total Revenue: £{total_revenue}"
-            if self.graph:
-                self.graph.ymax = total_revenue + 100
+            # Set the color of the plot line based on revenue change
+            if self.total_revenue[i] > self.total_revenue[i - 1]:
+                plot.color = (0, 1, 0, 1)  # Green color for increasing revenue
+            else:
+                plot.color = (1, 0, 0, 1)  # Red color for decreasing revenue
+
+            graph_obj.add_plot(plot)
+
+        graph.add_widget(graph_obj)
+
 
 class AccountPage(Screen):
     pass
 
 class ScreenManager(ScreenManager):
-    def update_statistics_page(self, total_revenue):
-        statistics_page = self.get_screen('SP')
-        statistics_page.update_total_revenue(total_revenue)
+    def add_file(self, *args):
+        super().add_file(*args)
+        self.get_screen('BP').update_statistics_page()
 
 class FinanceMe(MDApp):
     def build(self):

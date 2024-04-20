@@ -175,6 +175,7 @@ ScreenManager:
             text_color: 20/256, 101/256, 175/256, 1
 
         MDCard:
+            id:graph
             size_hint: None, None
             size: 450, 620
             pos_hint: {"center_x": 0.5, "center_y": 0.45}
@@ -183,16 +184,14 @@ ScreenManager:
             spacing: 25
             orientation: 'vertical'
 
-            Graph:
-                id: graph
-                orientation: 'vertical'
 
 
-                Label:
-                    id: total_revenue_label
-                    halign: 'center'
-                    valign: 'middle'
-                    font_size: 24
+
+            Label:
+                id: total_revenue_label
+                halign: 'center'
+                valign: 'middle'
+                font_size: 24
 
 
         MDBottomNavigation:
