@@ -174,6 +174,12 @@ ScreenManager:
             theme_text_color: "Custom"
             text_color: 20/256, 101/256, 175/256, 1
 
+        Button:
+            text: "Generate Prediction"
+            size_hint: 1, None
+            height: "48dp"
+            on_release: root.generate_prediction_data()
+
         MDCard:
             id:graph
             size_hint: None, None
@@ -185,13 +191,12 @@ ScreenManager:
             orientation: 'vertical'
 
 
-
-
             Label:
                 id: total_revenue_label
                 halign: 'center'
                 valign: 'middle'
                 font_size: 24
+
 
 
         MDBottomNavigation:

@@ -1,8 +1,8 @@
 from kivy.core.window import Window
+from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 from kivy.lang import Builder
 from kivymd.app import MDApp
-from kivy.properties import NumericProperty
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from datetime import datetime
@@ -12,8 +12,8 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy_garden.graph import Graph, MeshLinePlot
-from kivy.properties import ListProperty
-
+from datetime import timedelta
+import random
 
 total_revenue = []
 file_dates = []
@@ -114,10 +114,12 @@ class BP(Screen):
     def exit_manager(self, *args):
         self.file_manager.close()
 
+
 class StatisticsPage(Screen):
     def __init__(self, **kwargs):
         super(StatisticsPage, self).__init__(**kwargs)
         self.total_revenue = total_revenue
+        self.prediction_plots = []
 
     def on_enter(self):
         self.update_graph()
@@ -129,33 +131,44 @@ class StatisticsPage(Screen):
         graph = self.ids.graph
         graph.clear_widgets()
 
+        # Adjusting the size of the graph
+        graph.size_hint = (0.9, 5.5)  # Adjust these values as needed
+
         ymax = max(self.total_revenue) + 100
         graph_obj = Graph(xlabel='Date', ylabel='Total Revenue', x_ticks_minor=5,
                           x_ticks_major=1, y_ticks_major=int(ymax / 10), y_grid_label=True,
                           x_grid_label=True, padding=5, x_grid=True, y_grid=True,
                           xmin=0, xmax=len(file_dates), ymin=0, ymax=ymax)
-
         dates = [datetime.strptime(date, "%Y-%m-%d") for date in file_dates]
         x_labels = {i: date.strftime("%Y-%m-%d") for i, date in enumerate(dates)}
-        graph.x_ticks_major = 1  # Set major ticks to 1 to show all dates
+        graph.x_ticks_major = 1
         graph.x_labels = x_labels
-
-        # Iterate through total revenue data and create separate plots for each segment
         for i in range(1, len(self.total_revenue)):
             plot = MeshLinePlot()
             plot.points = [(i - 1, self.total_revenue[i - 1]), (i, self.total_revenue[i])]
-
-            # Set the color of the plot line based on revenue change
             if self.total_revenue[i] > self.total_revenue[i - 1]:
-                plot.color = (0, 1, 0, 1)  # Green color for increasing revenue
+                plot.color = (0, 1, 0, 1)
             else:
-                plot.color = (1, 0, 0, 1)  # Red color for decreasing revenue
-
+                plot.color = (1, 0, 0, 1)
             graph_obj.add_plot(plot)
-
         graph.add_widget(graph_obj)
 
 
+    def generate_prediction_data(self):
+        last_index = len(self.total_revenue) - 1
+        if last_index >= 0:
+            last_date = datetime.strptime(file_dates[last_index], "%Y-%m-%d")
+            next_date_1 = last_date + timedelta(days=1)
+            next_date_2 = last_date + timedelta(days=2)
+            new_revenue_1 = self.total_revenue[last_index] + random.uniform(-50, 50)  # Adjust range for diversity
+            new_revenue_2 = new_revenue_1 + random.uniform(-50, 50)  # Adjust range for diversity
+            file_dates.append(next_date_1.strftime("%Y-%m-%d"))
+            self.total_revenue.append(new_revenue_1)
+
+            file_dates.append(next_date_2.strftime("%Y-%m-%d"))
+            self.total_revenue.append(new_revenue_2)
+
+            self.update_graph()
 class AccountPage(Screen):
     pass
 
