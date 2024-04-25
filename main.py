@@ -1,6 +1,7 @@
 from kivy.core.window import Window
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
+from AI import generate_prediction
 from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivy.uix.label import Label
@@ -12,8 +13,9 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy_garden.graph import Graph, MeshLinePlot
-from datetime import timedelta
-import random
+from kivy.properties import BooleanProperty
+from AI import delete_generated_data
+
 
 total_revenue = []
 file_dates = []
@@ -116,9 +118,11 @@ class BP(Screen):
 
 
 class StatisticsPage(Screen):
+    prediction_active = BooleanProperty(False)
     def __init__(self, **kwargs):
         super(StatisticsPage, self).__init__(**kwargs)
         self.total_revenue = total_revenue
+        self.file_dates =file_dates
         self.prediction_plots = []
 
     def on_enter(self):
@@ -130,11 +134,10 @@ class StatisticsPage(Screen):
 
         graph = self.ids.graph
         graph.clear_widgets()
-
-        # Adjusting the size of the graph
-        graph.size_hint = (0.9, 5.5)  # Adjust these values as needed
+        graph.size_hint = (0.9, 5.5)
 
         ymax = max(self.total_revenue) + 100
+        ymax = float(ymax)
         graph_obj = Graph(xlabel='Date', ylabel='Total Revenue', x_ticks_minor=5,
                           x_ticks_major=1, y_ticks_major=int(ymax / 10), y_grid_label=True,
                           x_grid_label=True, padding=5, x_grid=True, y_grid=True,
@@ -153,22 +156,26 @@ class StatisticsPage(Screen):
             graph_obj.add_plot(plot)
         graph.add_widget(graph_obj)
 
+    def delete_generated_data(total_revenue, file_dates):
+        del total_revenue[-2:]
+        del file_dates[-2:]
+
+        return total_revenue, file_dates
+    def toggle_prediction(self, active):
+        global file_dates
+        self.prediction_active = active
+        if active:
+            self.generate_prediction_data()
+            self.update_graph()
+        else:
+            total_revenue, file_dates = delete_generated_data(self.total_revenue, file_dates)
+            self.update_graph()
 
     def generate_prediction_data(self):
-        last_index = len(self.total_revenue) - 1
-        if last_index >= 0:
-            last_date = datetime.strptime(file_dates[last_index], "%Y-%m-%d")
-            next_date_1 = last_date + timedelta(days=1)
-            next_date_2 = last_date + timedelta(days=2)
-            new_revenue_1 = self.total_revenue[last_index] + random.uniform(-50, 50)  # Adjust range for diversity
-            new_revenue_2 = new_revenue_1 + random.uniform(-50, 50)  # Adjust range for diversity
-            file_dates.append(next_date_1.strftime("%Y-%m-%d"))
-            self.total_revenue.append(new_revenue_1)
-
-            file_dates.append(next_date_2.strftime("%Y-%m-%d"))
-            self.total_revenue.append(new_revenue_2)
-
+        if self.prediction_active:
+            generate_prediction(self.total_revenue, file_dates)
             self.update_graph()
+
 class AccountPage(Screen):
     pass
 
