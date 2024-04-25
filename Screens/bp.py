@@ -43,15 +43,12 @@ class BP(Screen):
             self.popup_file_and_amount()
 
     def popup_file_and_amount(self):
-        popup_content = BoxLayout(orientation='vertical', padding=10)
+        popup_content = BoxLayout(orientation='vertical', padding=15, spacing=15)
 
-        # Create dropdown for category selection
-        category_dropdown = DropDown()
-
-        # Customize the appearance of dropdown items
-        dropdown_item_height = dp(40)  # Set dropdown item height
-        dropdown_item_color = (0.2, 0.2, 0.2, 1)  # Set dropdown item color
-        dropdown_item_font_size = dp(16)  # Set dropdown item font size
+        type_dropdown = DropDown()
+        dropdown_item_height = dp(40)
+        dropdown_item_color = (0.2, 0.2, 0.2, 1)
+        dropdown_item_font_size = dp(16)
 
         if self.category == 'Income':
             categories = ['Invoice', 'Sale', 'Product']
@@ -60,13 +57,13 @@ class BP(Screen):
         for category in categories:
             btn = Button(text=category, size_hint_y=None, height=dropdown_item_height,
                          background_color=dropdown_item_color, font_size=dropdown_item_font_size)
-            btn.bind(on_release=lambda btn: category_dropdown.select(btn.text))
-            category_dropdown.add_widget(btn)
+            btn.bind(on_release=lambda btn: type_dropdown.select(btn.text))
+            type_dropdown.add_widget(btn)
 
-        category_button = Button(text='Select Category', size_hint=(None, None), size=(150, 40),
-                                 background_color=(0.3, 0.3, 0.3, 1), font_size=dp(16))
-        category_button.bind(on_release=category_dropdown.open)
-        category_dropdown.bind(on_select=lambda instance, x: setattr(category_button, 'text', x))
+        type_button = Button(text='Select Type', size_hint=(None, None), size=(150, 40),
+                             background_color=(0.3, 0.3, 0.3, 1), font_size=dp(16))
+        type_button.bind(on_release=type_dropdown.open)
+        type_dropdown.bind(on_select=lambda instance, x: setattr(type_button, 'text', x))
 
         file_name_input = TextInput(hint_text="Enter file name", multiline=False)
         amount_input = TextInput(hint_text="Enter amount", multiline=False)
@@ -74,22 +71,26 @@ class BP(Screen):
                                 font_size=dp(16))
 
         def add_file_and_amount(instance):
-            selected_category = category_button.text
-            self.add_file(self.file_path, file_name_input.text)
-            self.add_amount(selected_category, amount_input.text)
+            selected_type = type_button.text
+            selected_category = type_button.text
+            self.add_file(self.file_path, file_name_input.text, selected_category)
+            self.add_amount(selected_type, amount_input.text)
             popup.dismiss()
 
         confirm_button.bind(on_press=add_file_and_amount)
 
-        popup_content.add_widget(category_button)
+        type_button.pos_hint = {'center_x': 0.5}
+
         popup_content.add_widget(file_name_input)
         popup_content.add_widget(amount_input)
+        popup_content.add_widget(type_button)
         popup_content.add_widget(confirm_button)
 
-        popup = Popup(title=f"Enter {self.category} File and Amount", content=popup_content, size_hint=(None, None),
-                      size=(350, 250))
+        popup = Popup(title=f"{self.category}", content=popup_content, size_hint=(None, None),
+                      size=(250, 300))
         popup.open()
-    def add_file(self, file_path, file_name):
+
+    def add_file(self, file_path, file_name, category):
         if hasattr(self, 'files_layout'):
             # Increment file count
             self.file_count += 1
@@ -97,10 +98,12 @@ class BP(Screen):
             formatted_datetime = now.strftime("%Y-%m-%d")
             file_dates.append(formatted_datetime)  # Store file addition date
             new_item = BoxLayout(size_hint_y=None, height=40, padding=5, spacing=5)
-            file_number_label = Label(text=str(self.file_count), size_hint_x=0.1)
-            file_name_label = Label(text=file_name, size_hint_x=None, width=200, halign="left", text_size=(None, None))
-            date_label = Label(text=formatted_datetime, size_hint_x=0.3, halign="right")
+            file_number_label = Label(text=str(self.file_count), size_hint_x=0.05)
+            file_name_label = Label(text=file_name, size_hint_x=0.3, width=200, halign="left", text_size=(None, None))
+            category_label = Label(text=category, size_hint_x=0.5, halign="center")
+            date_label = Label(text=formatted_datetime, size_hint_x=0.7, halign="right")
             new_item.add_widget(file_number_label)
+            new_item.add_widget(category_label)
             new_item.add_widget(file_name_label)
             new_item.add_widget(date_label)
             self.files_layout.add_widget(new_item)
@@ -113,12 +116,12 @@ class BP(Screen):
             last_file_index = len(self.file_entries) - 1
             file_entry = self.file_entries[last_file_index]
             amount_label = Label(text=f"   £{amount}", size_hint_x=0.3, halign="right")
-            if category == 'Income':
-                amount_label.color = (0, 1, 0, 1)
+            if self.category == 'Income':
+                amount_label.color = (0, 1, 0, 1)  # Green color
                 self.income_data.append(float(amount))
                 self.total_income += float(amount)
-            elif category == 'Outcome':
-                amount_label.color = (1, 0, 0, 1)
+            elif self.category == 'Outcome':
+                amount_label.color = (1, 0, 0, 1)  # Red color
                 self.outcome_data.append(float(amount))
                 self.total_outcome += float(amount)
             phtotal_revenue = self.total_income - self.total_outcome
