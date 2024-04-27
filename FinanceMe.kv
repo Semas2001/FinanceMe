@@ -80,7 +80,10 @@ ScreenManager:
             orientation: 'vertical'
             clip: True
 
-            BoxLayout:
+
+            MDBoxLayout:
+                pos_hint: {"center_x": 0.5}
+                size_hint_x: 1.2
                 size_hint_y: None
                 height: 40
                 orientation: 'horizontal'
@@ -110,14 +113,18 @@ ScreenManager:
 
 
             ScrollView:
+                pos_hint: {"center_x": 0.5, "center_y": 0.45}
+                border: (2, 2, 2, 2)
+                size_hint_x: 1.2
                 size_hint_y: None
-                height: self.parent.height * .7
+                height: self.parent.height *.7
                 GridLayout:
                     id: files_layout
                     cols: 1
                     spacing: 1
                     size_hint_y: None
                     height: self.minimum_height
+
             MDCard:
                 size_hint: None, None
                 size: 350,80
@@ -145,6 +152,18 @@ ScreenManager:
                     size_hint: None, None
                     size: 150, 40
                     on_release: root.show_popup('Outcome')
+
+                Widget:
+                    size_hint_x: None
+                    width: "30dp"
+
+                MDFloatingActionButton:
+                    pos_hint: {"center_y": 0.5}
+                    icon: 'filter'
+                    size_hint: None, None
+                    size: dp(26), dp(26)
+                    on_release: root.show_filter_popup()
+
 
 
         MDBottomNavigation:

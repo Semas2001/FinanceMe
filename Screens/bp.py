@@ -20,6 +20,7 @@ class BP(Screen):
         self.total_income = 0
         self.total_outcome = 0
 
+
     file_count = 0
     category = None
     file_path = None
@@ -147,4 +148,46 @@ class BP(Screen):
         error_label = Label(text=message, halign='center', size_hint=(None, None), size=(300, 100))
         error_popup = Popup(title='Error', content=error_label, size_hint=(None, None), size=(300, 150))
         error_popup.open()
+
+    def show_filter_popup(self):
+        popup_content = BoxLayout(orientation='vertical', padding=15, spacing=15)
+
+        type_dropdown = Spinner(text='All',
+                                values=['All', 'Invoice', 'Sale', 'Product', 'Bills', 'Contractor', 'Other'])
+        category_dropdown = Spinner(text='All', values=['All', 'Income', 'Outcome'])
+
+        filter_button = Button(text="Apply Filter", size_hint_y=None, height=40, background_color=(0.1, 0.6, 0.3, 1),
+                               font_size=dp(16))
+
+        def apply_filter(instance):
+            selected_type = type_dropdown.text if type_dropdown.text != 'All' else None
+            selected_category = category_dropdown.text if category_dropdown.text != 'All' else None
+            self.filter_entries(selected_type, selected_category)
+            popup.dismiss()
+
+        filter_button.bind(on_press=apply_filter)
+
+        popup_content.add_widget(type_dropdown)
+        popup_content.add_widget(category_dropdown)
+        popup_content.add_widget(filter_button)
+
+        popup = Popup(title="Filter Files", content=popup_content, size_hint=(None, None), size=(300, 200))
+        popup.open()
+
+    def filter_entries(self, selected_type, selected_category):
+        if hasattr(self, 'file_entries'):
+            for entry in self.file_entries:
+                entry_visible = True
+                if selected_category and entry.children[1].text != selected_category:
+                    entry_visible = False
+                if selected_type and entry.children[3].text.split('   £')[0] != selected_type:
+                    entry_visible = False
+                if entry_visible:
+                    entry.opacity = 1
+                    entry.height = dp(40)
+                else:
+                    entry.opacity = 0
+                    entry.height = 0
+        else:
+            print("Error: file_entries not initialized")
 
