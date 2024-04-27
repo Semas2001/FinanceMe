@@ -10,7 +10,6 @@ from Screens.statistics import StatisticsPage
 from Screens.accountPage import AccountPage
 
 
-
 total_revenue = []
 file_dates = []
 # Set window size

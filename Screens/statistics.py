@@ -4,6 +4,12 @@ from datetime import datetime
 from kivy.properties import BooleanProperty
 from FinanceMe.AI import generate_prediction, delete_generated_data
 from .bp import total_revenue,file_dates
+from kivy.uix.popup import Popup
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.metrics import dp
+from kivy.uix.label import Label
+
 
 
 class StatisticsPage(Screen):
@@ -18,14 +24,20 @@ class StatisticsPage(Screen):
         self.prediction_plots = []
 
     def on_enter(self):
-        if not self.graph_initialized:
+        if not self.files_exist():
+            self.show_no_data_popup()
+        elif not self.graph_initialized:
             self.update_graph()
             self.graph_initialized = True
-        self.update_graph()
+        else:
+            self.update_graph()
 
     def on_leave(self):
         if self.prediction_active:
             self.toggle_prediction(False)
+
+    def files_exist(self):
+        return len(file_dates) > 0
 
     def update_graph(self):
         if not self.total_revenue or not file_dates:
@@ -66,11 +78,38 @@ class StatisticsPage(Screen):
         if active:
             self.generate_prediction_data()
             self.update_graph()
+            self.show_data_hint(True)
         else:
             total_revenue, file_dates = delete_generated_data(self.total_revenue, file_dates)
             self.update_graph()
+            self.show_data_hint(False)
 
     def generate_prediction_data(self):
         if self.prediction_active:
             generate_prediction(self.total_revenue, file_dates)
             self.update_graph()
+
+    def show_data_hint(self, active):
+        hint_label = self.ids.hint_label
+        if active:
+            hint_label.text = "Hint: The more data you add, the more accurate the AI prediction becomes."
+            hint_label.color = (0.2, 0.5, 0.9, 1)  # Adjust color as needed
+        else:
+            hint_label.text = ""
+
+    def show_no_data_popup(self):
+        popup_content = BoxLayout(orientation='vertical', padding=15, spacing=15)
+        message_label = Label(text="There is no data to show.", size_hint_y=None, height=dp(40))
+        redirect_button = Button(text="Go to BP page", size_hint_y=None, height=dp(40))
+
+        def redirect_to_bp_page(instance):
+            self.manager.current = "BP"  # Redirect to BP page
+            popup.dismiss()
+
+        redirect_button.bind(on_release=redirect_to_bp_page)
+
+        popup_content.add_widget(message_label)
+        popup_content.add_widget(redirect_button)
+
+        popup = Popup(title="No Data", content=popup_content, size_hint=(None, None), size=(300, 200))
+        popup.open()

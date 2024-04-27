@@ -73,8 +73,17 @@ class BP(Screen):
         def add_file_and_amount(instance):
             selected_type = type_button.text
             selected_category = type_button.text
+            amount = amount_input.text.strip()  # Remove leading and trailing whitespace
+            if not amount:
+                self.show_error_popup("Amount is required. Please enter an amount.")
+                return
+            try:
+                float_amount = float(amount)
+            except ValueError:
+                self.show_error_popup("Incorrect amount. Please enter a valid number.")
+                return
             self.add_file(self.file_path, file_name_input.text, selected_category)
-            self.add_amount(selected_type, amount_input.text)
+            self.add_amount(selected_type, float_amount)
             popup.dismiss()
 
         confirm_button.bind(on_press=add_file_and_amount)
@@ -133,4 +142,9 @@ class BP(Screen):
 
     def exit_manager(self, *args):
         self.file_manager.close()
+
+    def show_error_popup(self, message):
+        error_label = Label(text=message, halign='center', size_hint=(None, None), size=(300, 100))
+        error_popup = Popup(title='Error', content=error_label, size_hint=(None, None), size=(300, 150))
+        error_popup.open()
 

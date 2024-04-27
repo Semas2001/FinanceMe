@@ -185,31 +185,45 @@ ScreenManager:
             theme_text_color: "Custom"
             text_color: 20/256, 101/256, 175/256, 1
 
-        ToggleButton:
-            id: prediction_toggle
-            text: "Prediction: ON" if root.prediction_active else "Prediction: OFF"
-            size_hint: 1, None
-            height: "48dp"
-            on_release: root.toggle_prediction(self.state == 'down')
 
         MDCard:
-            id:graph
             size_hint: None, None
-            size: 450, 620
+            size: 450, 600
             pos_hint: {"center_x": 0.5, "center_y": 0.45}
             elevation: 10
-            padding: 25
-            spacing: 25
+            padding:
+            spacing :10
             orientation: 'vertical'
 
+            MDCard:
+                id:graph
+                size_hint: None, None
+                pos_hint: {"center_x": 0.5, "center_y": 0.45}
+                elevation: 10
+            MDCard:
+                orientation: 'horizontal'
+                padding:10
 
-            Label:
-                id: total_revenue_label
-                halign: 'center'
-                valign: 'middle'
-                font_size: 24
+                Label:
+                    id: hint_label
+                    size_hint: None, None
+                    size: 280, 50
+                    pos_hint: {"center_y": 0.5}
+                    text_size: self.size
 
 
+                MDCheckbox:
+                    id: prediction_toggle_checkbox
+                    size_hint: None, None
+                    size: "30dp", "20dp"
+                    on_active: root.toggle_prediction(self.active)
+                    pos_hint: {"center_y": 0.5}
+
+                MDLabel:
+                    text: "Prediction: ON" if prediction_toggle_checkbox.active else "Prediction: OFF"
+                    size_hint_y: None
+                    height: "20dp"
+                    pos_hint: {"center_y": 0.5}
 
         MDBottomNavigation:
             panel_color: .2, .2, .2, 1
