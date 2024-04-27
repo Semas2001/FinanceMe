@@ -152,10 +152,9 @@ class BP(Screen):
     def show_filter_popup(self):
         popup_content = BoxLayout(orientation='vertical', padding=15, spacing=15)
 
-        type_dropdown = Spinner(text='All',
+        type_dropdown = Spinner(text='Choose Type',
                                 values=['All', 'Invoice', 'Sale', 'Product', 'Bills', 'Contractor', 'Other'])
-        category_dropdown = Spinner(text='All', values=['All', 'Income', 'Outcome'])
-
+        category_dropdown = Spinner(text='Choose Category', values=['All', 'Income', 'Outcome'])
         filter_button = Button(text="Apply Filter", size_hint_y=None, height=40, background_color=(0.1, 0.6, 0.3, 1),
                                font_size=dp(16))
 
@@ -178,9 +177,12 @@ class BP(Screen):
         if hasattr(self, 'file_entries'):
             for entry in self.file_entries:
                 entry_visible = True
-                if selected_category and entry.children[1].text != selected_category:
+                # Assuming the category label is at index 1
+                entry_category = entry.children[1].text
+                if selected_category and selected_category != 'All' and entry_category != selected_category:
                     entry_visible = False
-                if selected_type and entry.children[3].text.split('   £')[0] != selected_type:
+                if selected_type and selected_type != 'All' and entry.children[2].text.split('   £')[
+                    0] != selected_type:
                     entry_visible = False
                 if entry_visible:
                     entry.opacity = 1
@@ -190,4 +192,7 @@ class BP(Screen):
                     entry.height = 0
         else:
             print("Error: file_entries not initialized")
+
+
+
 
