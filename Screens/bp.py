@@ -8,9 +8,16 @@ from kivy.metrics import dp
 from kivy.uix.spinner import Spinner
 from kivy.uix.textinput import TextInput
 from datetime import datetime
+import openpyxl
+
 
 total_revenue = []
 file_dates = []
+
+
+
+
+
 class BP(Screen):
     def __init__(self, **kwargs):
         super(BP, self).__init__(**kwargs)
@@ -74,7 +81,7 @@ class BP(Screen):
         def add_file_and_amount(instance):
             selected_type = type_button.text
             selected_category = type_button.text
-            amount = amount_input.text.strip()  # Remove leading and trailing whitespace
+            amount = amount_input.text.strip()
             if not amount:
                 self.show_error_popup("Amount is required. Please enter an amount.")
                 return
@@ -102,7 +109,6 @@ class BP(Screen):
 
     def add_file(self, file_path, file_name, category):
         if hasattr(self, 'files_layout'):
-            # Increment file count
             self.file_count += 1
             now = datetime.now()
             formatted_datetime = now.strftime("%Y-%m-%d")
@@ -127,11 +133,11 @@ class BP(Screen):
             file_entry = self.file_entries[last_file_index]
             amount_label = Label(text=f"   £{amount}", size_hint_x=0.3, halign="right")
             if self.category == 'Income':
-                amount_label.color = (0, 1, 0, 1)  # Green color
+                amount_label.color = (0, 1, 0, 1)
                 self.income_data.append(float(amount))
                 self.total_income += float(amount)
             elif self.category == 'Outcome':
-                amount_label.color = (1, 0, 0, 1)  # Red color
+                amount_label.color = (1, 0, 0, 1)
                 self.outcome_data.append(float(amount))
                 self.total_outcome += float(amount)
             phtotal_revenue = self.total_income - self.total_outcome
@@ -177,7 +183,6 @@ class BP(Screen):
         if hasattr(self, 'file_entries'):
             for entry in self.file_entries:
                 entry_visible = True
-                # Assuming the category label is at index 1
                 entry_category = entry.children[1].text
                 if selected_category and selected_category != 'All' and entry_category != selected_category:
                     entry_visible = False
@@ -193,6 +198,96 @@ class BP(Screen):
         else:
             print("Error: file_entries not initialized")
 
+    def show_invoice_popup(self):
+        popup_content = BoxLayout(orientation='vertical', padding=15, spacing=15)
+        spinner = Spinner(text='Select Type', values=['Input', 'Output'])
+        popup_content.add_widget(spinner)
 
+        client_name_input = TextInput(hint_text="Client Name", multiline=False, size_hint_y=None, height=dp(40))
+        popup_content.add_widget(Label(text="Client Name:"))
+        popup_content.add_widget(client_name_input)
+        item_input = TextInput(hint_text="Item/Service", multiline=False, size_hint_y=None, height=dp(40))
+        quantity_input = TextInput(hint_text="Quantity", multiline=False, input_type='number', size_hint_y=None,
+                                   height=dp(40))
+        price_input = TextInput(hint_text="Price", multiline=False, input_type='number', size_hint_y=None,
+                                height=dp(40))
+        add_item_button = Button(text="Add Item", size_hint_y=None, height=dp(40),
+                                 background_color=(0.1, 0.6, 0.3, 1), font_size=dp(16))
 
+        item_layout = BoxLayout(orientation='vertical', spacing=10)
 
+        popup_content.add_widget(Label(text="Items/Services:"))
+        popup_content.add_widget(item_input)
+        popup_content.add_widget(quantity_input)
+        popup_content.add_widget(price_input)
+        popup_content.add_widget(add_item_button)
+
+        total_price_label = Label(text="Total Price: £0.00", size_hint_y=None, height=dp(40))
+        popup_content.add_widget(total_price_label)
+
+        def add_item(instance):
+            item = item_input.text.strip()
+            quantity = quantity_input.text.strip()
+            price = price_input.text.strip()
+
+            if not all([item, quantity, price]):
+                show_error_popup("Item, Quantity, and Price are required.")
+                return
+
+            try:
+                quantity = int(quantity)
+                price = float(price)
+            except ValueError:
+                show_error_popup("Quantity and Price must be numbers.")
+                return
+
+            item_label = Label(text=f"{item} (x{quantity}): £{price * quantity:.2f}")
+            item_layout.add_widget(item_label)
+
+            item_input.text = ""
+            quantity_input.text = ""
+            price_input.text = ""
+            total_price = sum(float(child.text.split(': £')[1]) for child in item_layout.children)
+            total_price_label.text = f"Total Price: £{total_price:.2f}"
+
+        add_item_button.bind(on_release=add_item)
+        popup_content.add_widget(item_layout)
+
+        generate_button = Button(text="Generate Invoice", size_hint_y=None, height=dp(40),
+                                 background_color=(0.1, 0.6, 0.3, 1), font_size=dp(16))
+
+        def generate_invoice(instance):
+            client_name = client_name_input.text.strip()
+            invoice_type = spinner.text.strip()
+
+            if not client_name or item_layout.children == []:
+                show_error_popup("Client Name and at least one item are required.")
+                return
+
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.append(["Item", "Quantity", "Price"])
+            total_price = 0
+            for child in item_layout.children:
+                item_text = child.text.split('(')[0].strip()
+                quantity_text = child.text.split('x')[1].split(')')[0].strip()
+                price_text = child.text.split('£')[1].strip()
+                ws.append([item_text, quantity_text, price_text])
+                total_price += float(price_text)
+            ws.append(["Total Price", "", total_price])
+            ws.append(["Invoice Type", "", invoice_type])
+            wb.save(f"Invoice_{client_name}.xlsx")
+            wb.close()
+
+            popup.dismiss()
+
+        generate_button.bind(on_release=generate_invoice)
+        popup_content.add_widget(generate_button)
+
+        popup = Popup(title="Invoice Generation", content=popup_content, size_hint=(None, None), size=(400, 600))
+        popup.open()
+
+def show_error_popup(message):
+    error_popup = Popup(title='Error', content=Label(text=message, halign='center'),
+                        size_hint=(None, None), size=(300, 150))
+    error_popup.open()

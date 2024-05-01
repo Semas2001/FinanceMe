@@ -130,32 +130,30 @@ ScreenManager:
                 size: 350,80
                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
                 elevation: 10
-                padding: 35
-                spacing: 1
+                padding: 4
+                spacing: 21
                 orientation: 'horizontal'
 
+                MDFloatingActionButton:
+                    pos_hint: {"center_y": 0.5}
+                    icon: 'file-documen'
+                    size_hint: None, None
+                    size: dp(26), dp(26)
+                    on_release: root.show_invoice_popup()
 
                 MDRoundFlatButton:
                     text: "Income"
-                    pos_hint: {"center_y": 0.35}
+                    pos_hint: {"center_y": 0.5}
                     size_hint: None, None
                     size: 150, 40
                     on_release: root.show_popup('Income')
 
-                Widget:
-                    size_hint_x: None
-                    width: "120dp"
-
                 MDRoundFlatButton:
                     text: "Outcome"
-                    pos_hint: {"center_y": 0.35}
+                    pos_hint: {"center_y": 0.5}
                     size_hint: None, None
                     size: 150, 40
                     on_release: root.show_popup('Outcome')
-
-                Widget:
-                    size_hint_x: None
-                    width: "30dp"
 
                 MDFloatingActionButton:
                     pos_hint: {"center_y": 0.5}
@@ -163,6 +161,7 @@ ScreenManager:
                     size_hint: None, None
                     size: dp(26), dp(26)
                     on_release: root.show_filter_popup()
+
 
 
 
